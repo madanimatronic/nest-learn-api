@@ -34,7 +34,7 @@ export default tseslint.config(
       '@typescript-eslint/no-require-imports': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
       'prefer-const': 'warn',
-      'prettier/prettier': 'warn',
+      'prettier/prettier': ['warn', { endOfLine: 'auto' }],
       quotes: ['warn', 'single', { avoidEscape: true }],
     },
   },
