@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from './dto/create-user-dto';
-import { User } from './user.model';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './models/user.model';
 import { UsersService } from './users.service';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   // Можно и без async/await, если не нужно обрабатывать результат
   // Если возвращается promise, то Nest дождётся его выполнения, затем вернёт ответ
