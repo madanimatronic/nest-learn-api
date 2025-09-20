@@ -12,6 +12,8 @@ export class UsersService {
     private readonly rolesService: RolesService,
   ) {}
 
+  // Некоторые методы возвращают "грязные" данные с лишними полями вроде _previousDataValues и т.п.
+  // для чистых данных нужно использовать raw: true или другие способы
   async createUser(dto: CreateUserDto) {
     const user = await this.userRepository.create(dto);
     const role = await this.rolesService.getRoleByName('USER');
@@ -22,6 +24,7 @@ export class UsersService {
       );
     }
     await user.$set('roles', [role.id]);
+    user.roles = [role];
     return user;
   }
 
@@ -38,5 +41,13 @@ export class UsersService {
       // attributes: { exclude: ['updatedAt'] },
     });
     return users;
+  }
+
+  async getUserByEmail(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email: email },
+      raw: true,
+    });
+    return user;
   }
 }
