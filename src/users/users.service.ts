@@ -4,6 +4,7 @@ import { Role } from 'src/roles/roles.model';
 import { RolesService } from 'src/roles/roles.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './models/user.model';
+import { UserAttributes } from './types/user.types';
 
 @Injectable()
 export class UsersService {
@@ -46,8 +47,12 @@ export class UsersService {
   async getUserByEmail(email: string) {
     const user = await this.userRepository.findOne({
       where: { email: email },
-      raw: true,
+      include: {
+        model: Role,
+        through: { attributes: [] },
+      },
     });
-    return user;
+
+    return user?.toJSON() as UserAttributes;
   }
 }

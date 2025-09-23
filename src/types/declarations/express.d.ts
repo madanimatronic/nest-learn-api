@@ -1,7 +1,9 @@
-import { User } from 'src/users/models/user.model';
+// import { UserJwtPayload } from 'src/auth/types/user-jwt.types';
+// import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 
-declare module 'express' {
-  interface Request {
-    user?: Omit<User, 'password'>;
-  }
-}
+// // Расширение Request при необходимости
+// declare module 'express' {
+//   interface Request {
+//     user?: AuthenticatedUserAttributes | UserJwtPayload;
+//   }
+// }
