@@ -81,6 +81,22 @@ export class AuthController {
     return { accessToken: refreshedTokens.accessToken };
   }
 
+  @UseGuards(RefreshJwtAuthGuard)
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(
+    @Req() req: AuthRequest<AuthenticatedUserAttributes>,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedException('User not found');
+    }
+    await this.authService.logout(req.user.id);
+    res.clearCookie('refresh_token');
+
+    return { message: 'success' };
+  }
+
   @UseGuards(AccessJwtAuthGuard)
   @Get('test-jwt')
   testJwt(@Req() req: AuthRequest<UserJwtPayload>) {

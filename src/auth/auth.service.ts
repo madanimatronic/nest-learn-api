@@ -81,6 +81,10 @@ export class AuthService {
     return tokens;
   }
 
+  async logout(userId: number) {
+    await this.refreshTokensRepository.destroy({ where: { userId: userId } });
+  }
+
   private generateTokens(payload: UserJwtPayload) {
     return {
       accessToken: this.jwtService.sign(payload),
