@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { AuthenticatedUserDto } from 'src/users/dto/authenticated-user.dto';
 import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 import { UsersService } from 'src/users/users.service';
+import { UserRegisterDto } from './dto/register-data.dto';
 import { UserJwtPayloadDto } from './dto/user-jwt-payload.dto';
 import { UserJwtPayload } from './types/user-jwt.types';
 
-// TODO: реализовать refresh и refresh токены, сохранять refresh токены в БД
+// TODO: реализовать access и refresh токены, сохранять refresh токены в БД
 // (whitelist, чтобы при логауте нельзя было использовать refresh токен)
 @Injectable()
 export class AuthService {
@@ -15,6 +17,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
+
+  async register(userDto: UserRegisterDto) {
+    const newUser = await this.userService.createUser(userDto);
+
+    const authenticatedUserData = new AuthenticatedUserDto(newUser);
+
+    return this.login(authenticatedUserData);
+  }
 
   login(user: AuthenticatedUserAttributes) {
     const payload = new UserJwtPayloadDto(user);
@@ -28,9 +38,9 @@ export class AuthService {
     const user = await this.userService.getUserByEmail(email);
 
     if (user && user.password === pass) {
-      const { password, ...result } = user;
+      const result = new AuthenticatedUserDto(user);
 
-      return result;
+      return { ...result };
     }
 
     return null;

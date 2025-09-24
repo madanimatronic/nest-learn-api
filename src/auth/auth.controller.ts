@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -14,19 +15,31 @@ import { type Response } from 'express';
 import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 import { cookieExtractorWrapper } from 'src/utils/cookie-extractor.util';
 import { AuthService } from './auth.service';
+import { UserRegisterDto } from './dto/register-data.dto';
 import { AccessJwtAuthGuard } from './guards/access-jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
 import { type AuthRequest } from './types/request.types';
 import { UserJwtPayload } from './types/user-jwt.types';
 
-// TODO: регистрация, logout (опционально)
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
+
+  @Post('register')
+  async register(
+    @Body() userDto: UserRegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.register(userDto);
+
+    this.setRefreshTokenCookie(tokens.refreshToken, res);
+
+    return { accessToken: tokens.accessToken };
+  }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
