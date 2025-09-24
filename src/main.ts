@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const PORT = process.env.PORT ?? 5000;
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
 
   const config = new DocumentBuilder()
     .setTitle('NestJS Learn API')

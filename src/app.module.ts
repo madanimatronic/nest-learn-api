@@ -8,6 +8,7 @@ import { UserRoles } from './users/models/user-roles.model';
 import { User } from './users/models/user.model';
 import { UsersModule } from './users/users.module';
 
+// TODO: добавить валидацию env и для всего остального
 @Module({
   imports: [
     ConfigModule.forRoot({

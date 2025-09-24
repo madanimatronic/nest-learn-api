@@ -5,8 +5,9 @@ import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from 'src/users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { AccessJwtStrategy } from './strategies/access-jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 
 // TODO: задокументировать этот модуль
 @Module({
@@ -15,14 +16,23 @@ import { LocalStrategy } from './strategies/local.strategy';
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow<string>('JWT_SECRET'),
-        // TODO: убрать хардкод (и лучше добавить валидацию env)
-        signOptions: { expiresIn: '15m' },
+        // Настройки для access токена + fallback значения
+        // Для access и refresh токенов разные secret и expiresIn,
+        // поэтому для refresh токена нужно переопределить эти значения
+        secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        signOptions: {
+          expiresIn: configService.getOrThrow<string>('JWT_ACCESS_LIFETIME'),
+        },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    AccessJwtStrategy,
+    RefreshJwtStrategy,
+  ],
 })
 export class AuthModule {}
