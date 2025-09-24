@@ -44,14 +44,14 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(
+  async login(
     @Req() req: AuthRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
     if (!req.user) {
       throw new UnauthorizedException('User not found');
     }
-    const tokens = this.authService.login(req.user);
+    const tokens = await this.authService.login(req.user);
 
     this.setRefreshTokenCookie(tokens.refreshToken, res);
 
@@ -61,7 +61,7 @@ export class AuthController {
   @UseGuards(RefreshJwtAuthGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(
+  async refresh(
     @Req() req: AuthRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -71,7 +71,7 @@ export class AuthController {
     }
     const refreshToken = this.getRefreshTokenCookie(req)!;
 
-    const refreshedTokens = this.authService.refreshTokens(
+    const refreshedTokens = await this.authService.refreshTokens(
       req.user,
       refreshToken,
     );
