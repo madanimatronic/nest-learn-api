@@ -7,10 +7,10 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApiTags } from '@nestjs/swagger';
 import { type Response } from 'express';
 import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 import { cookieExtractorWrapper } from 'src/utils/cookie-extractor.util';
@@ -22,6 +22,7 @@ import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
 import { type AuthRequest } from './types/request.types';
 import { UserJwtPayload } from './types/user-jwt.types';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -48,9 +49,6 @@ export class AuthController {
     @Req() req: AuthRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
-    if (!req.user) {
-      throw new UnauthorizedException('User not found');
-    }
     const tokens = await this.authService.login(req.user);
 
     this.setRefreshTokenCookie(tokens.refreshToken, res);
@@ -65,10 +63,6 @@ export class AuthController {
     @Req() req: AuthRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // TODO: убрать дублирование можно через middleware (или guard наверное) (изучить)
-    if (!req.user) {
-      throw new UnauthorizedException('User not found');
-    }
     const refreshToken = this.getRefreshTokenCookie(req)!;
 
     const refreshedTokens = await this.authService.refreshTokens(
@@ -88,9 +82,6 @@ export class AuthController {
     @Req() req: AuthRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
-    if (!req.user) {
-      throw new UnauthorizedException('User not found');
-    }
     await this.authService.logout(req.user.id);
     res.clearCookie('refresh_token');
 
@@ -98,11 +89,8 @@ export class AuthController {
   }
 
   @UseGuards(AccessJwtAuthGuard)
-  @Get('test-jwt')
-  testJwt(@Req() req: AuthRequest<UserJwtPayload>) {
-    if (!req.user) {
-      throw new UnauthorizedException('User data error');
-    }
+  @Get('test-access')
+  testAccess(@Req() req: AuthRequest<UserJwtPayload>) {
     return req.user;
   }
 

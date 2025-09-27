@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AccessJwtAuthGuard } from 'src/auth/guards/access-jwt-auth.guard';
 import { User } from './models/user.model';
 import { UsersService } from './users.service';
 
@@ -13,6 +14,7 @@ export class UsersController {
   // P.S. Здесь async просто для лучшего вида + в документации похожие примеры
   @ApiOperation({ summary: 'Получение всех пользователей' })
   @ApiResponse({ status: 200, type: [User] })
+  @UseGuards(AccessJwtAuthGuard)
   @Get()
   async getAll() {
     return this.usersService.getUsers();

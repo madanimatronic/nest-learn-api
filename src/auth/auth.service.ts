@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
+import bcrypt from 'bcrypt';
 import { AuthenticatedUserDto } from 'src/users/dto/authenticated-user.dto';
 import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 import { UsersService } from 'src/users/users.service';
@@ -10,8 +11,7 @@ import { UserJwtPayloadDto } from './dto/user-jwt-payload.dto';
 import { RefreshTokens } from './models/refresh-tokens.model';
 import { UserJwtPayload } from './types/user-jwt.types';
 
-// TODO: реализовать access и refresh токены, сохранять refresh токены в БД
-// (whitelist, чтобы при логауте нельзя было использовать refresh токен)
+// TODO: сделать очистку просроченных токенов из БД (cron или ещё как-то)
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,7 +23,14 @@ export class AuthService {
   ) {}
 
   async register(userDto: UserRegisterDto) {
-    const newUser = await this.userService.createUser(userDto);
+    const isProd =
+      this.configService.getOrThrow<string>('NODE_ENV') === 'production';
+    const saltRounds = isProd ? 12 : 8;
+
+    const newUser = await this.userService.createUser({
+      ...userDto,
+      password: await bcrypt.hash(userDto.password, saltRounds),
+    });
 
     const authenticatedUserData = new AuthenticatedUserDto(newUser);
 
@@ -43,10 +50,10 @@ export class AuthService {
     return tokens;
   }
 
-  async validateUser(email: string, pass: string) {
+  async validateUser(email: string, rawPassword: string) {
     const user = await this.userService.getUserByEmail(email);
 
-    if (user && user.password === pass) {
+    if (user && (await bcrypt.compare(rawPassword, user.password))) {
       const result = new AuthenticatedUserDto(user);
 
       return { ...result };
