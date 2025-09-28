@@ -61,7 +61,7 @@ export class User extends Model<
     example: 'banned for test',
   })
   @Column({ type: DataType.STRING, allowNull: true })
-  declare banReason: CreationOptional<string>;
+  declare banReason: CreationOptional<string | null>;
 
   @ApiProperty({
     description: 'Дата создания',

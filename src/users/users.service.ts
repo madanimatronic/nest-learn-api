@@ -1,8 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Role } from 'src/roles/roles.model';
 import { RolesService } from 'src/roles/roles.service';
+import { AddRoleToUserDto } from './dto/add-role.dto';
+import { BanUserDto } from './dto/ban-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { SetUserRolesDto } from './dto/set-user-roles.dto';
 import { User } from './models/user.model';
 import { UserAttributes } from './types/user.types';
 
@@ -25,7 +33,11 @@ export class UsersService {
       );
     }
     await user.$set('roles', [role.id]);
-    user.roles = [role];
+
+    await user.reload({
+      include: { model: Role, through: { attributes: [] } },
+    });
+
     return user;
   }
 
@@ -66,5 +78,77 @@ export class UsersService {
     });
 
     return user?.toJSON() as UserAttributes;
+  }
+
+  async addRole(dto: AddRoleToUserDto) {
+    const user = await this.userRepository.findByPk(dto.userId);
+    const role = await this.rolesService.getRoleByName(dto.role);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
+
+    await user.$add('roles', role.id);
+
+    await user.reload({
+      include: { model: Role, through: { attributes: [] } },
+    });
+
+    return user.toJSON();
+  }
+
+  async setRoles(dto: SetUserRolesDto) {
+    const user = await this.userRepository.findByPk(dto.userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const allRoles = await this.rolesService.getAllRoles();
+    const filteredRoles = allRoles.filter((role) =>
+      dto.roles.includes(role.name),
+    );
+    const filteredRoleIds = filteredRoles.map((role) => role.id);
+
+    await user.$set('roles', filteredRoleIds);
+
+    await user.reload({
+      include: { model: Role, through: { attributes: [] } },
+    });
+
+    return user.toJSON();
+  }
+
+  async ban(dto: BanUserDto) {
+    const user = await this.userRepository.findByPk(dto.userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await user.update({ banned: true, banReason: dto.banReason });
+    await user.reload({
+      include: { model: Role, through: { attributes: [] } },
+    });
+
+    return user.toJSON();
+  }
+
+  async unban(userId: number) {
+    const user = await this.userRepository.findByPk(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await user.update({ banned: false, banReason: null });
+    await user.reload({
+      include: { model: Role, through: { attributes: [] } },
+    });
+
+    return user.toJSON();
   }
 }

@@ -9,7 +9,7 @@ export class AuthenticatedUserDto implements AuthenticatedUserAttributes {
   public readonly id: number;
   public readonly email: string;
   public readonly banned: boolean;
-  public readonly banReason: string;
+  public readonly banReason: string | null;
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
   public readonly roles: Role[];
