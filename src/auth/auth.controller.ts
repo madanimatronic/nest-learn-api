@@ -19,7 +19,7 @@ import { UserRegisterDto } from './dto/register-data.dto';
 import { AccessJwtAuthGuard } from './guards/access-jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
-import { type AuthRequest } from './types/request.types';
+import { type AuthenticatedRequest } from './types/request.types';
 import { UserJwtPayload } from './types/user-jwt.types';
 
 @ApiTags('Auth')
@@ -46,7 +46,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
-    @Req() req: AuthRequest<AuthenticatedUserAttributes>,
+    @Req() req: AuthenticatedRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.authService.login(req.user);
@@ -60,7 +60,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
-    @Req() req: AuthRequest<AuthenticatedUserAttributes>,
+    @Req() req: AuthenticatedRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = this.getRefreshTokenCookie(req)!;
@@ -79,7 +79,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
-    @Req() req: AuthRequest<AuthenticatedUserAttributes>,
+    @Req() req: AuthenticatedRequest<AuthenticatedUserAttributes>,
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(req.user.id);
@@ -90,7 +90,7 @@ export class AuthController {
 
   @UseGuards(AccessJwtAuthGuard)
   @Get('test-access')
-  testAccess(@Req() req: AuthRequest<UserJwtPayload>) {
+  testAccess(@Req() req: AuthenticatedRequest<UserJwtPayload>) {
     return req.user;
   }
 
@@ -103,7 +103,9 @@ export class AuthController {
     });
   }
 
-  private getRefreshTokenCookie(req: AuthRequest<AuthenticatedUserAttributes>) {
+  private getRefreshTokenCookie(
+    req: AuthenticatedRequest<AuthenticatedUserAttributes>,
+  ) {
     const cookieExtractor = cookieExtractorWrapper('refresh_token');
     return cookieExtractor(req);
   }

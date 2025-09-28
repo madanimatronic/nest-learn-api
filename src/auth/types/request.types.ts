@@ -2,7 +2,7 @@ import { Request } from 'express';
 import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 import { UserJwtPayload } from './user-jwt.types';
 
-export interface AuthRequest<
+export interface AuthenticatedRequest<
   T extends AuthenticatedUserAttributes | UserJwtPayload | undefined =
     | AuthenticatedUserAttributes
     | UserJwtPayload
