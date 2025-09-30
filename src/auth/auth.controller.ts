@@ -8,10 +8,12 @@ import {
   Req,
   Res,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { type Response } from 'express';
+import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { AuthenticatedUserAttributes } from 'src/users/types/user.types';
 import { cookieExtractorWrapper } from 'src/utils/cookie-extractor.util';
 import { AuthService } from './auth.service';
@@ -21,6 +23,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
 import { type AuthenticatedRequest } from './types/request.types';
 import { UserJwtPayload } from './types/user-jwt.types';
+import { registerDataSchema } from './validation/auth.validation';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,6 +34,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @UsePipes(new ZodValidationPipe(registerDataSchema))
   async register(
     @Body() userDto: UserRegisterDto,
     @Res({ passthrough: true }) res: Response,
