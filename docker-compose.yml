@@ -1,0 +1,38 @@
+services:
+  main:
+    container_name: main
+    build:
+      context: .
+    env_file:
+      - .docker.development.env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 5000:5000
+      - 9299:9299
+    command: npm run start:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+  postgres:
+    container_name: postgres
+    image: postgres:17
+    env_file:
+      - .docker.development.env
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-postgres}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
